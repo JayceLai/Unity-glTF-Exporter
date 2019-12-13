@@ -22,12 +22,12 @@ public enum ExporterState
 
 public class ExporterSKFB : EditorWindow {
 
-	[MenuItem("gltf/export")]
+	[MenuItem("Gltf/export")]
 	static void Init()
 	{
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
 		ExporterSKFB window = (ExporterSKFB)EditorWindow.GetWindow(typeof(ExporterSKFB));
-		window.titleContent.text = "gltf";
+		window.titleContent.text = "Gltf";
 		window.Show();
 #else // and error dialog if not standalone
 		EditorUtility.DisplayDialog("Error", "Your build target must be set to standalone", "Okay");
@@ -53,19 +53,19 @@ public class ExporterSKFB : EditorWindow {
 	const int SPACE_SIZE = 5;
 
 	private string exporterVersion = GlTF_Writer.exporterVersion;
-	private string latestVersion = "0.0.1";
+	// private string latestVersion = "0.0.1";
 
 	// Keys used to save credentials in editor prefs
 	const string usernameEditorKey = "UnityExporter_username";
 	//const string passwordEditorKey = "UnityExporter_password";
 
 	// Exporter UI: static elements
-	[SerializeField]
-	Texture2D header;
-	GUIStyle exporterTextArea;
+	// [SerializeField]
+	// Texture2D header;
+	// GUIStyle exporterTextArea;
 	GUIStyle exporterLabel;
-	GUIStyle exporterClickableLabel;
-	private string clickableLabelColor = "navy";
+	// GUIStyle exporterClickableLabel;
+	//private string clickableLabelColor = "navy";
 	//private Color clickableLabelColor =
 	// Exporter objects and scripts
 	WWW www;
@@ -111,8 +111,8 @@ public class ExporterSKFB : EditorWindow {
 	//private List<String> tagList;
 	void Awake()
 	{
-		zipPath = Application.persistentDataPath + "/CocosGltf/" + "CocosGltf.zip";
-		exportPath = Application.persistentDataPath + "/CocosGltf/" + "CocosGltf.gltf";
+		zipPath = Application.persistentDataPath + "/Gltf/" + "Gltf.zip";
+		exportPath = Application.persistentDataPath + "/Gltf/" + "Gltf.gltf";
 
 		exporterGo = new GameObject("Exporter");
 		publisher = exporterGo.AddComponent<ExporterScript>();
@@ -127,14 +127,14 @@ public class ExporterSKFB : EditorWindow {
 	void OnEnable()
 	{
 		// Try to load header image
-		if(!header)
-			header = (Texture2D)Resources.Load(Application.dataPath + "/Unity-glTF-Exporter/ExporterHeader.png", typeof(Texture2D));
+		// if(!header)
+		// 	header = (Texture2D)Resources.Load(Application.dataPath + "/Unity-glTF-Exporter/ExporterHeader.png", typeof(Texture2D));
 
 		// Pre-fill model name with scene name if empty
-		if (param_name.Length == 0)
-		{
-			param_name = EditorSceneManager.GetActiveScene().name;
-		}
+		// if (param_name.Length == 0)
+		// {
+		// 	param_name = EditorSceneManager.GetActiveScene().name;
+		// }
 		resizeWindow(loginSize);
 		relog();
 	}
@@ -197,18 +197,18 @@ public class ExporterSKFB : EditorWindow {
 	{
 		status = "";
 
-		if (param_name.Length > NAME_LIMIT)
-		{
-			status = "Model name is too long";
-			return false;
-		}
+		// if (param_name.Length > NAME_LIMIT)
+		// {
+		// 	status = "Model name is too long";
+		// 	return false;
+		// }
 
 
-		if (param_name.Length == 0)
-		{
-			status = "Please give a name to your model";
-			return false;
-		}
+		// if (param_name.Length == 0)
+		// {
+		// 	status = "Please give a name to your model";
+		// 	return false;
+		// }
 
 
 		if (param_description.Length > DESC_LIMIT)
@@ -232,30 +232,30 @@ public class ExporterSKFB : EditorWindow {
 			return false;
 		}
 
-		status = "Upload " + nbSelectedObjects + " object" + (nbSelectedObjects != 1 ? "s" : "");
+		status = "select " + nbSelectedObjects + " object" + (nbSelectedObjects != 1 ? "s" : "");
 		return true;
 	}
 
 	void OnGUI()
 	{
-		if(exporterLabel == null)
-		{
-			exporterLabel = new GUIStyle(GUI.skin.label);
-			exporterLabel.richText = true;
-		}
+		// if(exporterLabel == null)
+		// {
+		// 	exporterLabel = new GUIStyle(GUI.skin.label);
+		// 	exporterLabel.richText = true;
+		// }
 
-		if(exporterTextArea == null)
-		{
-			exporterTextArea = new GUIStyle(GUI.skin.textArea);
-			exporterTextArea.fixedWidth = descSize.x;
-			exporterTextArea.fixedHeight = descSize.y;
-		}
+		// if(exporterTextArea == null)
+		// {
+		// 	exporterTextArea = new GUIStyle(GUI.skin.textArea);
+		// 	exporterTextArea.fixedWidth = descSize.x;
+		// 	exporterTextArea.fixedHeight = descSize.y;
+		// }
 
-		if(exporterClickableLabel == null)
-		{
-			exporterClickableLabel = new GUIStyle(EditorStyles.centeredGreyMiniLabel);
-			exporterClickableLabel.richText = true;
-		}
+		// if(exporterClickableLabel == null)
+		// {
+		// 	exporterClickableLabel = new GUIStyle(EditorStyles.centeredGreyMiniLabel);
+		// 	exporterClickableLabel.richText = true;
+		// }
 		//Header
 		// GUILayout.BeginHorizontal();
 		// GUILayout.FlexibleSpace();
@@ -267,19 +267,19 @@ public class ExporterSKFB : EditorWindow {
 
 		if (true)//access_token.Length > 0)
 		{
-			// Model settings
-			GUILayout.Label("Model properties", EditorStyles.boldLabel);
+			// // Model settings
+			// GUILayout.Label("Model properties", EditorStyles.boldLabel);
 
-			// Model name
-			GUILayout.Label("Name");
-			param_name = EditorGUILayout.TextField(param_name);
-			GUILayout.Label("(" + param_name.Length + "/" + NAME_LIMIT + ")", EditorStyles.centeredGreyMiniLabel);
-			EditorStyles.textField.wordWrap = true;
-			GUILayout.Space(SPACE_SIZE);
+			// // Model name
+			// GUILayout.Label("Name");
+			// param_name = EditorGUILayout.TextField(param_name);
+			// GUILayout.Label("(" + param_name.Length + "/" + NAME_LIMIT + ")", EditorStyles.centeredGreyMiniLabel);
+			// EditorStyles.textField.wordWrap = true;
+			// GUILayout.Space(SPACE_SIZE);
 
-			GUILayout.Label("Description");
-			param_description = EditorGUILayout.TextArea(param_description, exporterTextArea);
-			GUILayout.Label("(" + param_description.Length + " / 1024)", EditorStyles.centeredGreyMiniLabel);
+			// GUILayout.Label("Description");
+			// param_description = EditorGUILayout.TextArea(param_description, exporterTextArea);
+			// GUILayout.Label("(" + param_description.Length + " / 1024)", EditorStyles.centeredGreyMiniLabel);
 			// GUILayout.Space(SPACE_SIZE);
 			// GUILayout.Label("Tags (separated by spaces)");
 			// param_tags = EditorGUILayout.TextField(param_tags);
@@ -324,7 +324,7 @@ public class ExporterSKFB : EditorWindow {
 			//if (categories.Count > 0)
 			//	categoryIndex = EditorGUILayout.Popup(categoryIndex, categoriesNames.ToArray());
 
-			//GUILayout.Space(SPACE_SIZE);
+			GUILayout.Space(SPACE_SIZE);
 			bool enable = updateExporterStatus();
 
 			if (enable)
@@ -335,7 +335,7 @@ public class ExporterSKFB : EditorWindow {
 			if (publisher != null && publisher.getState() == ExporterState.PUBLISH_MODEL && publisher.www != null)
 			{
 				Rect r = EditorGUILayout.BeginVertical();
-				EditorGUI.ProgressBar(r, progress(), "Upload progress");
+				EditorGUI.ProgressBar(r, progress(), "progress");
 				GUILayout.Space(18);
 				EditorGUILayout.EndVertical();
 			}
@@ -352,8 +352,9 @@ public class ExporterSKFB : EditorWindow {
 					}
 					else
 					{
-						zipPath = Application.persistentDataPath + "/CocosGltf/" + param_name + ".zip";
-						exportPath = Application.persistentDataPath + "/CocosGltf/" +	param_name + ".gltf";
+						Transform[] transforms = Selection.GetTransforms(SelectionMode.TopLevel);
+						zipPath = Application.persistentDataPath + "/gltf-exports/" + transforms[0].name + ".zip";
+						exportPath = Application.persistentDataPath + "/gltf-exports/" +	transforms[0].name + ".gltf";
 						if (System.IO.File.Exists(zipPath))
 						{
 							System.IO.File.Delete(zipPath);
@@ -382,8 +383,8 @@ public class ExporterSKFB : EditorWindow {
 	private Dictionary<string, string> buildParameterDict()
 	{
 		Dictionary<string, string> parameters = new Dictionary<string, string>();
-		parameters["name"] = param_name;
-		parameters["description"] = param_description;
+		// parameters["name"] = param_name;
+		// parameters["description"] = param_description;
 		// parameters["tags"] = "unity unity3D " + param_tags;
 		// parameters["private"] = param_private ? "1" : "0";
 		// parameters["isPublished"] = param_autopublish ? "1" : "0";

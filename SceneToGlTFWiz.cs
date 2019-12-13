@@ -134,10 +134,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		writer.extraString.Add("exporterVersion", GlTF_Writer.exporterVersion );
 
+		Transform[] transforms0 = Selection.GetTransforms(SelectionMode.TopLevel);
 		// Create rootNode
 		GlTF_Node correctionNode = new GlTF_Node();
-		correctionNode.id = "UnityGlTF_root";
-		correctionNode.name = "UnityGlTF_root";
+		correctionNode.id = transforms0[0].name;
+		correctionNode.name = transforms0[0].name;
 		GlTF_Writer.nodes.Add(correctionNode);
 		GlTF_Writer.nodeNames.Add(correctionNode.name);
 		GlTF_Writer.rootNodes.Add(correctionNode);
@@ -436,7 +437,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 					for (int i = 0; i < clips.Length; i++)
 					{
 						//FIXME It seems not good to generate one animation per animator.
-						GlTF_Animation anim = new GlTF_Animation(GlTF_Writer.cleanNonAlphanumeric(a.name));
+						GlTF_Animation anim = new GlTF_Animation(GlTF_Writer.cleanNonAlphanumeric(clips[i].name));
 						anim.Populate(clips[i], tr, GlTF_Writer.bakeAnimation);
 						if(anim.channels.Count > 0)
 							GlTF_Writer.animations.Add(anim);
@@ -448,7 +449,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 				{
 					AnimationClip clip = animation.clip;
 					//FIXME It seems not good to generate one animation per animator.
-					GlTF_Animation anim = new GlTF_Animation(GlTF_Writer.cleanNonAlphanumeric(animation.name));
+					GlTF_Animation anim = new GlTF_Animation(GlTF_Writer.cleanNonAlphanumeric(clip.name));
 					anim.Populate(clip, tr, GlTF_Writer.bakeAnimation);
 					if (anim.channels.Count > 0)
 						GlTF_Writer.animations.Add(anim);
