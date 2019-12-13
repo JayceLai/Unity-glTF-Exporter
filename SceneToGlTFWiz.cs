@@ -540,26 +540,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 			Debug.Log(nbDisabledObjects + " disabled object ignored during export");
 
 		Debug.Log("Scene has been exported to " + path);
-		if(buildZip)
-		{
-			ZipFile zip = new ZipFile();
-			Debug.Log(GlTF_Writer.exportedFiles.Count + " files generated");
-			string zipName = Path.GetFileNameWithoutExtension(path) + ".zip";
-			foreach(string originFilePath in GlTF_Writer.exportedFiles.Keys)
-			{
-				zip.AddFile(originFilePath, GlTF_Writer.exportedFiles[originFilePath]);
-			}
-			
-			zip.Save(savedPath + "/" + zipName);
-
-			// // Remove all files
-			// foreach (string pa in GlTF_Writer.exportedFiles.Keys)
-			// {
-			// 	if (System.IO.File.Exists(pa))
-			// 		System.IO.File.Delete(pa);
-			// }
-
-		}
 		EditorUtility.DisplayDialog("状态", "导出成功", "Ok");
 		done = true;
 
