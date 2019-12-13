@@ -1,5 +1,16 @@
-# Important note
+# 简介
 
-This code is no longer maintained, as the plugin has been moved to https://github.com/sketchfab/UnityGLTF
+适用于 unity ，可以将设计期的数据导出成 gltf 2.0 标准的资源。
 
-The new plugin also includes an importer and a Sketchfab asset browser.
+已测试过的 unity 版本：
+5.6.7f1
+2017.4.*
+
+## 使用方法
+
+将此仓库放到你的 unity 工程中，正常情况下，菜单栏会多一个 Gltf 选项
+
+打开 Gltf 中的 export 面板, 再选中场景中需要导出的节点，再点中间的蓝色按钮，即可导出相应的 Gltf 资源
+
+**注意：导出目录在 log 日志中有输出**。
+**注意：如果说文件夹找不到，请按照相应路径建立一下（好像有些版本存在此问题）**。
