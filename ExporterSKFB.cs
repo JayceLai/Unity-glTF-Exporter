@@ -23,8 +23,6 @@ public class ExporterSKFB : EditorWindow {
 #endif
 	}
 
-	private string exporterVersion = GlTF_Writer.exporterVersion;
-
 	GUIStyle exporterLabel;
 	GameObject exporterGo;
 	SceneToGlTFWiz exporter;
@@ -35,14 +33,13 @@ public class ExporterSKFB : EditorWindow {
 
 	private string status = "";
 	private Color blueColor = new Color(69 / 255.0f, 185 / 255.0f, 223 / 255.0f);
-	private Color redColor = new Color(0.8f, 0.0f, 0.0f);
 	private Color greyColor = Color.white;
 
 	void Awake()
 	{
-		zipPath = Application.persistentDataPath + "/Gltf/" + "Gltf.zip";
-		exportPath = Application.persistentDataPath + "/Gltf/" + "Gltf.gltf";
-
+		System.IO.Directory.CreateDirectory(Application.persistentDataPath + "/gltf-exports");
+		zipPath = Application.persistentDataPath + "/gltf-exports/" + "Gltf.zip";
+		exportPath = Application.persistentDataPath + "/gltf-exports/" + "Gltf.gltf";
 		exporterGo = new GameObject("Exporter");
 		exporter = exporterGo.AddComponent<SceneToGlTFWiz>();
 		exporterGo.hideFlags = HideFlags.HideAndDontSave;
