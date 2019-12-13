@@ -22,12 +22,12 @@ public enum ExporterState
 
 public class ExporterSKFB : EditorWindow {
 
-	[MenuItem("Tools/Publish to Sketchfab")]
+	[MenuItem("gltf/export")]
 	static void Init()
 	{
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
 		ExporterSKFB window = (ExporterSKFB)EditorWindow.GetWindow(typeof(ExporterSKFB));
-		window.titleContent.text = "Sketchfab";
+		window.titleContent.text = "gltf";
 		window.Show();
 #else // and error dialog if not standalone
 		EditorUtility.DisplayDialog("Error", "Your build target must be set to standalone", "Okay");
@@ -36,12 +36,6 @@ public class ExporterSKFB : EditorWindow {
 
 	// Static data
 	public static string skfbUrl = "https://sketchfab.com/";
-	public static string latestReleaseUrl = "https://github.com/sketchfab/Unity-glTF-Exporter/releases";
-	public static string resetPasswordUrl = "https://sketchfab.com/login/reset-password";
-	public static string createAccountUrl = "https://sketchfab.com/signup";
-	public static string reportAnIssueUrl = "https://help.sketchfab.com/hc/en-us/requests/new?type=exporters&subject=Unity+Exporter";
-	public static string privateUrl = "https://help.sketchfab.com/hc/en-us/articles/115000422206-Private-Models";
-	public static string draftUrl = "https://help.sketchfab.com/hc/en-us/articles/115000472906-Draft-Mode";
 
 	// UI dimensions (to be cleaned)
 	[SerializeField]
@@ -117,8 +111,8 @@ public class ExporterSKFB : EditorWindow {
 	//private List<String> tagList;
 	void Awake()
 	{
-		zipPath = Application.temporaryCachePath + "/" + "Unity2Skfb.zip";
-		exportPath = Application.temporaryCachePath + "/" + "Unity2Skfb.gltf";
+		zipPath = Application.persistentDataPath + "/CocosGltf/" + "CocosGltf.zip";
+		exportPath = Application.persistentDataPath + "/CocosGltf/" + "CocosGltf.gltf";
 
 		exporterGo = new GameObject("Exporter");
 		publisher = exporterGo.AddComponent<ExporterScript>();
@@ -184,124 +178,6 @@ public class ExporterSKFB : EditorWindow {
 		windowRect = this.position;
 		windowRect.height = expand ? fullSize.y : loginSize.y;
 		position = windowRect;
-	}
-
-	// Update is called once per frame
-	void OnInspectorUpdate()
-	{
-		Repaint();
-		float currentTimeSecond = convertToSeconds(DateTime.Now);
-		if (access_token.Length > 0 && currentTimeSecond - lastTokenTime > expiresIn)
-		{
-			access_token = "";
-			relog();
-		}
-
-		if (publisher != null && publisher.www != null && publisher.www.isDone)
-		{
-			state = publisher.getState();
-			www = publisher.www;
-			switch (state)
-			{
-				case ExporterState.CHECK_VERSION:
-					JSONNode githubResponse = JSON.Parse(this.jsonify(www.text));
-					if(githubResponse != null && githubResponse[0]["tag_name"] != null)
-					{
-						latestVersion = githubResponse[0]["tag_name"];
-						if (exporterVersion != latestVersion)
-						{
-							bool update = EditorUtility.DisplayDialog("Exporter update", "A new version is available \n(you have version " + exporterVersion + ")\nIt's strongly rsecommended that you update now. The latest version may include important bug fixes and improvements", "Update", "Skip");
-							if (update)
-							{
-								Application.OpenURL(latestReleaseUrl);
-							}
-						}
-						else
-						{
-							resizeWindow(fullSize);
-						}
-					}
-					else
-					{
-						latestVersion = "";
-						resizeWindow(fullSize + new Vector2(0, 15));
-					}
-					publisher.setIdle();
-					break;
-				case ExporterState.REQUEST_CODE:
-					JSONNode accessResponse = JSON.Parse(this.jsonify(www.text));
-					if (accessResponse["access_token"] != null)
-					{
-						access_token = accessResponse["access_token"];
-						expiresIn = accessResponse["expires_in"].AsFloat;
-						lastTokenTime = convertToSeconds(DateTime.Now);
-						publisher.getAccountType(access_token);
-						if (exporterVersion != latestVersion)
-							resizeWindow(fullSize + new Vector2(0, 20));
-						else
-							resizeWindow(fullSize);
-					}
-					else
-					{
-						string errorDesc = accessResponse["error_description"];
-						EditorUtility.DisplayDialog("Authentication failed", "Failed to authenticate on Sketchfab.com.\nPlease check your credentials\n\nError: " + errorDesc, "Ok");
-						publisher.setIdle();
-					}
-
-					break;
-				case ExporterState.PUBLISH_MODEL:
-					//foreach(string key in www.responseHeaders.Keys)
-					//{
-					//    Debug.Log("[" + key + "] = " + www.responseHeaders[key]);
-					//}
-					if (www.responseHeaders["STATUS"].Contains("201") == true)
-					{
-						string urlid = www.responseHeaders["LOCATION"].Split('/')[www.responseHeaders["LOCATION"].Split('/').Length -1];
-						string url = skfbUrl + "models/" + urlid;
-						Application.OpenURL(url);
-					}
-					else
-					{
-						EditorUtility.DisplayDialog("Upload failed", www.responseHeaders["STATUS"], "Ok");
-					}
-					publisher.setIdle();
-					break;
-				case ExporterState.GET_CATEGORIES:
-					string jsonify = this.jsonify(www.text);
-					if (!jsonify.Contains("results"))
-					{
-						Debug.Log(jsonify);
-						Debug.Log("Failed to retrieve categories");
-						publisher.setIdle();
-						break;
-					}
-
-					JSONArray categoriesArray = JSON.Parse(jsonify)["results"].AsArray;
-					foreach (JSONNode node in categoriesArray)
-					{
-						categories.Add(node["name"], node["slug"]);
-						categoriesNames.Add(node["name"]);
-					}
-					publisher.setIdle();
-					break;
-
-				case ExporterState.USER_ACCOUNT_TYPE:
-					string accountRequest = this.jsonify(www.text);
-					if(!accountRequest.Contains("account"))
-					{
-						Debug.Log(accountRequest);
-						Debug.Log("Failed to retrieve user account type");
-						publisher.setIdle();
-						break;
-					}
-
-					var userSettings = JSON.Parse(accountRequest);
-					isUserPro = userSettings["account"].ToString().Contains("free") == false;
-					userDisplayName = userSettings["displayName"];
-					publisher.setIdle();
-					break;
-			}
-		}
 	}
 
 	private string jsonify(string jsondata)
@@ -381,105 +257,15 @@ public class ExporterSKFB : EditorWindow {
 			exporterClickableLabel.richText = true;
 		}
 		//Header
-		GUILayout.BeginHorizontal();
-		GUILayout.FlexibleSpace();
-		GUILayout.Label(header);
-		GUILayout.FlexibleSpace();
-		GUILayout.EndHorizontal();
-
-		// Account settings
-		if (access_token.Length == 0)
-		{
-			GUILayout.Label("Log in with your Sketchfab account", EditorStyles.centeredGreyMiniLabel);
-			user_name = EditorGUILayout.TextField("Email", user_name);
-			user_password = EditorGUILayout.PasswordField("Password", user_password);
-			GUILayout.BeginHorizontal();
-			GUILayout.FlexibleSpace();
-			if(GUILayout.Button("<color="+ clickableLabelColor +">Create an account  - </color>", exporterClickableLabel, GUILayout.Height(20)))
-			{
-				Application.OpenURL(createAccountUrl);
-			}
-			if (GUILayout.Button("<color="+ clickableLabelColor +">Reset your password  - </color>", exporterClickableLabel, GUILayout.Height(20)))
-			{
-				Application.OpenURL(resetPasswordUrl);
-			}
-			if (GUILayout.Button("<color=" + clickableLabelColor + ">Report an issue</color>", exporterClickableLabel, GUILayout.Height(20)))
-			{
-				Application.OpenURL(reportAnIssueUrl);
-			}
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-			GUILayout.FlexibleSpace();
-			if (GUILayout.Button("Login", GUILayout.Width(150), GUILayout.Height(25)))
-			{
-				www = publisher.www;
-				publisher.oauth(user_name, user_password);
-				EditorPrefs.SetString(usernameEditorKey, user_name);
-				//EditorPrefs.SetString(passwordEditorKey, user_password);
-			}
-			GUILayout.EndHorizontal();
-		}
-		else
-		{
-			if (latestVersion.Length == 0)
-			{
-
-				Color current = GUI.color;
-				GUI.color = Color.red;
-				GUILayout.Label("An error occured when looking for the latest exporter version\nYou might be using an old and not fully supported version", EditorStyles.centeredGreyMiniLabel);
-				if (GUILayout.Button("Click here to be redirected to release page"))
-				{
-					Application.OpenURL(latestReleaseUrl);
-				}
-				GUI.color = current;
-			}
-			else if (exporterVersion != latestVersion)
-			{
-				Color current = GUI.color;
-				GUI.color = redColor;
-				GUILayout.Label("New version " + latestVersion + " available (current version is " + exporterVersion + ")", EditorStyles.centeredGreyMiniLabel);
-				GUILayout.BeginHorizontal();
-				GUILayout.FlexibleSpace();
-				if (GUILayout.Button("Go to release page", GUILayout.Width(150), GUILayout.Height(25)))
-				{
-					Application.OpenURL(latestReleaseUrl);
-				}
-				GUILayout.FlexibleSpace();
-				GUILayout.EndHorizontal();
-				GUI.color = current;
-			}
-			else
-			{
-				GUILayout.BeginHorizontal();
-				GUILayout.Label("Exporter is up to date (version:" + exporterVersion + ")", EditorStyles.centeredGreyMiniLabel);
-
-				GUILayout.FlexibleSpace();
-				if(GUILayout.Button("<color=" + clickableLabelColor + ">Help  -</color>", exporterClickableLabel, GUILayout.Height(20)))
-				{
-					Application.OpenURL(latestReleaseUrl);
-				}
-
-				if (GUILayout.Button("<color=" + clickableLabelColor + ">Report an issue</color>", exporterClickableLabel, GUILayout.Height(20)))
-				{
-					Application.OpenURL(reportAnIssueUrl);
-				}
-				GUILayout.EndHorizontal();
-			}
-			GUILayout.BeginHorizontal("Box");
-			GUILayout.Label("Account: <b>" + userDisplayName + "</b> (" + (isUserPro ? "PRO" : "FREE") + " account)", exporterLabel);
-			if (GUILayout.Button("Logout"))
-			{
-				access_token = "";
-				//EditorPrefs.DeleteKey(usernameEditorKey);
-				//EditorPrefs.DeleteKey(passwordEditorKey);
-				resizeWindow(loginSize);
-			}
-			GUILayout.EndHorizontal();
-		}
+		// GUILayout.BeginHorizontal();
+		// GUILayout.FlexibleSpace();
+		// GUILayout.Label(header);
+		// GUILayout.FlexibleSpace();
+		// GUILayout.EndHorizontal();
 
 		GUILayout.Space(SPACE_SIZE);
 
-		if (access_token.Length > 0)
+		if (true)//access_token.Length > 0)
 		{
 			// Model settings
 			GUILayout.Label("Model properties", EditorStyles.boldLabel);
@@ -494,45 +280,46 @@ public class ExporterSKFB : EditorWindow {
 			GUILayout.Label("Description");
 			param_description = EditorGUILayout.TextArea(param_description, exporterTextArea);
 			GUILayout.Label("(" + param_description.Length + " / 1024)", EditorStyles.centeredGreyMiniLabel);
-			GUILayout.Space(SPACE_SIZE);
-			GUILayout.Label("Tags (separated by spaces)");
-			param_tags = EditorGUILayout.TextField(param_tags);
-			GUILayout.Label("'unity' and 'unity3D' added automatically (" + param_tags.Length + "/50)", EditorStyles.centeredGreyMiniLabel);
-			GUILayout.Space(SPACE_SIZE);
+			// GUILayout.Space(SPACE_SIZE);
+			// GUILayout.Label("Tags (separated by spaces)");
+			// param_tags = EditorGUILayout.TextField(param_tags);
+			// GUILayout.Label("'unity' and 'unity3D' added automatically (" + param_tags.Length + "/50)", EditorStyles.centeredGreyMiniLabel);
+			// GUILayout.Space(SPACE_SIZE);
 			// ENable only if user is pro
 
-			GUILayout.Label("PRO only features", EditorStyles.centeredGreyMiniLabel);
-			if (isUserPro) {
-				EditorGUILayout.BeginVertical("Box");
-				GUILayout.BeginHorizontal();
-				param_private = EditorGUILayout.Toggle("Private model", param_private);
-				if (GUILayout.Button("(<color=" + clickableLabelColor + ">more info</color>)", exporterClickableLabel, GUILayout.Height(20)))
-				{
-					Application.OpenURL(latestReleaseUrl);
-				}
-				GUILayout.FlexibleSpace();
-				GUILayout.EndHorizontal();
-				GUI.enabled = isUserPro && param_private;
-				GUILayout.Label("Password");
-				param_password = EditorGUILayout.TextField(param_password);
-				EditorGUILayout.EndVertical();
-				GUI.enabled = true;
-			}
+			// GUILayout.Label("PRO only features", EditorStyles.centeredGreyMiniLabel);
+			// if (isUserPro) {
+			// 	EditorGUILayout.BeginVertical("Box");
+			// 	GUILayout.BeginHorizontal();
+			// 	param_private = EditorGUILayout.Toggle("Private model", param_private);
+			// 	if (GUILayout.Button("(<color=" + clickableLabelColor + ">more info</color>)", exporterClickableLabel, GUILayout.Height(20)))
+			// 	{
+			// 		Application.OpenURL(latestReleaseUrl);
+			// 	}
+			// 	GUILayout.FlexibleSpace();
+			// 	GUILayout.EndHorizontal();
+			// 	GUI.enabled = isUserPro && param_private;
+			// 	GUILayout.Label("Password");
+			// 	param_password = EditorGUILayout.TextField(param_password);
+			// 	EditorGUILayout.EndVertical();
+			// 	GUI.enabled = true;
+			// }
 			GUILayout.Label("Options", EditorStyles.boldLabel);
 			GUILayout.BeginHorizontal();
 			opt_exportAnimation = EditorGUILayout.Toggle("Export animation (beta)", opt_exportAnimation);
 			GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal();
 
-			GUILayout.BeginHorizontal();
-			param_autopublish = EditorGUILayout.Toggle("Publish immediately ", param_autopublish);
-			if (GUILayout.Button("(<color=" + clickableLabelColor + ">more info</color>)", exporterClickableLabel, GUILayout.Height(20)))
-			{
-				Application.OpenURL(latestReleaseUrl);
-			}
-			GUILayout.FlexibleSpace();
-			GUILayout.EndHorizontal();
-			//GUILayout.Space(SPACE_SIZE);
+			// GUILayout.BeginHorizontal();
+			// param_autopublish = EditorGUILayout.Toggle("Publish immediately ", param_autopublish);
+			// if (GUILayout.Button("(<color=" + clickableLabelColor + ">more info</color>)", exporterClickableLabel, GUILayout.Height(20)))
+			// {
+			// 	Application.OpenURL(latestReleaseUrl);
+			// }
+			// GUILayout.FlexibleSpace();
+			// GUILayout.EndHorizontal();
+
+			GUILayout.Space(SPACE_SIZE);
 
 			//if (categories.Count > 0)
 			//	categoryIndex = EditorGUILayout.Popup(categoryIndex, categoriesNames.ToArray());
@@ -565,6 +352,8 @@ public class ExporterSKFB : EditorWindow {
 					}
 					else
 					{
+						zipPath = Application.persistentDataPath + "/CocosGltf/" + param_name + ".zip";
+						exportPath = Application.persistentDataPath + "/CocosGltf/" +	param_name + ".gltf";
 						if (System.IO.File.Exists(zipPath))
 						{
 							System.IO.File.Delete(zipPath);
@@ -595,22 +384,22 @@ public class ExporterSKFB : EditorWindow {
 		Dictionary<string, string> parameters = new Dictionary<string, string>();
 		parameters["name"] = param_name;
 		parameters["description"] = param_description;
-		parameters["tags"] = "unity unity3D " + param_tags;
-		parameters["private"] = param_private ? "1" : "0";
-		parameters["isPublished"] = param_autopublish ? "1" : "0";
+		// parameters["tags"] = "unity unity3D " + param_tags;
+		// parameters["private"] = param_private ? "1" : "0";
+		// parameters["isPublished"] = param_autopublish ? "1" : "0";
 		//string category = categories[categoriesNames[categoryIndex]];
 		//Debug.Log(category);
 		//parameters["categories"] = category;
-		if (param_private)
-			parameters["password"] = param_password;
+		// if (param_private)
+		// 	parameters["password"] = param_password;
 
 		return parameters;
 	}
 
 	void OnDestroy()
 	{
-		if (System.IO.File.Exists(zipPath))
-			System.IO.File.Delete(zipPath);
+		// if (System.IO.File.Exists(zipPath))
+		// 	System.IO.File.Delete(zipPath);
 
 		if (exporterGo)
 		{

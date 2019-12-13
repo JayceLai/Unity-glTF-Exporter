@@ -551,15 +551,15 @@ public class SceneToGlTFWiz : MonoBehaviour
 			
 			zip.Save(savedPath + "/" + zipName);
 
-			// Remove all files
-			foreach (string pa in GlTF_Writer.exportedFiles.Keys)
-			{
-				if (System.IO.File.Exists(pa))
-					System.IO.File.Delete(pa);
-			}
+			// // Remove all files
+			// foreach (string pa in GlTF_Writer.exportedFiles.Keys)
+			// {
+			// 	if (System.IO.File.Exists(pa))
+			// 		System.IO.File.Delete(pa);
+			// }
 
-			Debug.Log("Files have been cleaned");
 		}
+		EditorUtility.DisplayDialog("状态", "导出成功", "Ok");
 		done = true;
 
 		yield return true;
