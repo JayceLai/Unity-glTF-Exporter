@@ -10,7 +10,7 @@ public class GlTF_Mesh : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o)
 	{
-		return "mesh_" + GlTF_Writer.GetNameFromObject(o, true);
+		return /*"mesh_" + */GlTF_Writer.GetNameFromObject(o);
 	}
 
 	public void Populate (Mesh m)

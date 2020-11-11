@@ -32,6 +32,7 @@ public class GlTF_Writer {
 	public static List<GlTF_Accessor> accessors = new List<GlTF_Accessor>();
 
 	public static List<string> nodeNames = new List<string>();
+	public static List<string> nodeIDs = new List<string>();
 	public static List<GlTF_Node> nodes = new List<GlTF_Node>();
 
 	public static List<string> materialNames = new List<string>();
@@ -71,11 +72,11 @@ public class GlTF_Writer {
 	static public string GetNameFromObject(Object o, bool useId = false)
 	{
 		var ret = cleanNonAlphanumeric(o.name);
-		if (useId)
-		{
-			ret += "_" + o.GetInstanceID();
-		}
-		return ret;
+        if (useId)
+        {
+            ret += "_" + o.GetInstanceID();
+        }
+        return ret;
 	}
 
 	public void convertVector3LeftToRightHandedness(ref Vector3 vect)
@@ -156,6 +157,7 @@ public class GlTF_Writer {
 
 		nodes = new List<GlTF_Node>();
 		nodeNames = new List<string>();
+        nodeIDs = new List<string>();
 
 		materialNames = new List<string>();
 		materials = new List<GlTF_Material>();

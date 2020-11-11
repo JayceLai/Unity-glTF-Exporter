@@ -135,13 +135,14 @@ public class SceneToGlTFWiz : MonoBehaviour
 		writer.extraString.Add("exporterVersion", GlTF_Writer.exporterVersion );
 
 		Transform[] transforms0 = Selection.GetTransforms(SelectionMode.TopLevel);
-		// Create rootNode
-		GlTF_Node correctionNode = new GlTF_Node();
-		correctionNode.id = transforms0[0].name;
-		correctionNode.name = transforms0[0].name;
-		GlTF_Writer.nodes.Add(correctionNode);
-		GlTF_Writer.nodeNames.Add(correctionNode.name);
-		GlTF_Writer.rootNodes.Add(correctionNode);
+		//// Create rootNode
+		//GlTF_Node correctionNode = new GlTF_Node();
+		//correctionNode.id = GetInstanceID(transforms0[0]);
+		//correctionNode.name = transforms0[0].name;
+		//GlTF_Writer.nodes.Add(correctionNode);
+  		//GlTF_Writer.nodeIDs.Add(correctionNode.id);
+  		//GlTF_Writer.nodeNames.Add(correctionNode.name);
+		//GlTF_Writer.rootNodes.Add(correctionNode);
 
 		//path = toGlTFname(path);
 		savedPath = Path.GetDirectoryName(path);
@@ -173,6 +174,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		nbSelectedObjects = trs.Count;
 		int nbDisabledObjects = 0;
+        int nbIndex = 1;
 		foreach (Transform tr in trs)
 		{
 			if (tr.gameObject.activeInHierarchy == false)
@@ -183,7 +185,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 			// Initialize the node
 			GlTF_Node node = new GlTF_Node();
-			node.id = GlTF_Node.GetNameFromObject(tr);
+            node.id = GetInstanceID(tr);//GlTF_Node.GetNameFromObject(tr);
 			node.name = GlTF_Writer.cleanNonAlphanumeric(tr.name);
 
 			if (tr.GetComponent<Camera>() != null)
@@ -196,7 +198,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 			if (m != null)
 			{
 				GlTF_Mesh mesh = new GlTF_Mesh();
-				mesh.name = GlTF_Writer.cleanNonAlphanumeric(GlTF_Mesh.GetNameFromObject(m) + tr.name);
+                mesh.id = GetInstanceID(m);
+                mesh.name = GlTF_Writer.cleanNonAlphanumeric(GlTF_Mesh.GetNameFromObject(m));
 
 				GlTF_Accessor positionAccessor = new GlTF_Accessor(GlTF_Accessor.GetNameFromObject(m, "position"), GlTF_Accessor.Type.VEC3, GlTF_Accessor.ComponentType.FLOAT);
 				positionAccessor.bufferView = GlTF_Writer.vec3BufferView;
@@ -486,8 +489,12 @@ public class SceneToGlTFWiz : MonoBehaviour
 					node.rotation = new GlTF_Rotation (tr.localRotation);
 			}
 
-			if(!node.hasParent)
-				correctionNode.childrenNames.Add(node.id);
+            if (!node.hasParent)
+            {
+                // correctionNode.childrenNames.Add(node.name);
+                // correctionNode.childrenIDs.Add(node.id);
+                GlTF_Writer.rootNodes.Add(node);
+            }
 
 			if (tr.GetComponent<Camera>() != null)
 			{
@@ -503,7 +510,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 			{
 				GlTF_Skin skin = new GlTF_Skin();
 
-				skin.name = GlTF_Writer.cleanNonAlphanumeric(skinMesh.rootBone.name) + "_skeleton_" + GlTF_Writer.cleanNonAlphanumeric(node.name) + tr.GetInstanceID();
+                skin.name = GlTF_Writer.cleanNonAlphanumeric(skinMesh.rootBone.name);// + "_skeleton_" + GlTF_Writer.cleanNonAlphanumeric(node.name) + tr.GetInstanceID();
 
 				// Create invBindMatrices accessor
 				invBindMatrixAccessor = new GlTF_Accessor(skin.name + "invBindMatrices", GlTF_Accessor.Type.MAT4, GlTF_Accessor.ComponentType.FLOAT);
@@ -518,12 +525,16 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 			foreach (Transform t in tr.transform)
 			{
-				if(t.gameObject.activeInHierarchy)
+				if (t.gameObject.activeInHierarchy) {
 					node.childrenNames.Add(GlTF_Node.GetNameFromObject(t));
+					node.childrenIDs.Add(GlTF_Node.GetIDFromObject(t));
+				}
 			}
 
-			GlTF_Writer.nodeNames.Add(node.id);
+			GlTF_Writer.nodeNames.Add(node.name);
+			GlTF_Writer.nodeIDs.Add(node.id);
 			GlTF_Writer.nodes.Add (node);
+            // Debug.Log(node.name + "_" + node.id + "_" + nbIndex++);
 		}
 
 		if (GlTF_Writer.meshes.Count == 0)
@@ -823,8 +834,8 @@ public class SceneToGlTFWiz : MonoBehaviour
 			// Export image
 			GlTF_Image img = new GlTF_Image();
 			img.name = GlTF_Image.GetNameFromObject(t);
-			img.uri = convertTexture(ref t, assetPath, savedPath, format);
-
+            string url = convertTexture(ref t, assetPath, savedPath, format);
+            img.uri = url.Replace('\\','/');
 			texture.source = GlTF_Writer.imageNames.Count;
 			GlTF_Writer.imageNames.Add(img.name);
 			GlTF_Writer.images.Add(img);
@@ -1117,5 +1128,10 @@ public class SceneToGlTFWiz : MonoBehaviour
 
 		return pathInGltfFile;
 	}
+    
+    public string GetInstanceID(UnityEngine.Object o)
+    {
+        return o.GetInstanceID() + "";
+    }
 }
 #endif

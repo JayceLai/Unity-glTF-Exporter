@@ -7,6 +7,7 @@ public class GlTF_Node : GlTF_Writer {
 	public string cameraName;
 	public bool hasParent = false;
 	public List<string> childrenNames = new List<string>();
+	public List<string> childrenIDs = new List<string>();
 	public bool uniqueItems = true;
 	public string lightName;
 	public List<string>bufferViewNames = new List<string>();
@@ -24,7 +25,12 @@ public class GlTF_Node : GlTF_Writer {
 
 	public static string GetNameFromObject(Object o)
 	{
-		return "node_" + GlTF_Writer.GetNameFromObject(o, true);
+		return /*"node_" + */GlTF_Writer.GetNameFromObject(o, false);
+	}
+	
+	public static string GetIDFromObject(Object o)
+	{
+		return /*"node_" + */o.GetInstanceID() + "";
 	}
 
 	public override void Write ()
@@ -34,7 +40,7 @@ public class GlTF_Node : GlTF_Writer {
 		IndentIn();
 		Indent();
 		CommaNL();
-		jsonWriter.Write ("\"name\": \"" + id + "\"");
+		jsonWriter.Write ("\"name\": \"" + name + "\"");
 		if (cameraName != null)
 		{
 			CommaNL();
@@ -54,15 +60,15 @@ public class GlTF_Node : GlTF_Writer {
 			jsonWriter.Write ("\"mesh\": " + meshIndex);
 		}
 
-		if (childrenNames != null && childrenNames.Count > 0)
-		{
-			CommaNL();
-			Indent();	jsonWriter.Write ("\"children\": [\n");
-			IndentIn();
-			foreach (string ch in childrenNames)
+        if (childrenIDs != null && childrenIDs.Count > 0)
+        {
+            CommaNL();
+            Indent(); jsonWriter.Write("\"children\": [\n");
+            IndentIn();
+			foreach (string ch in childrenIDs)
 			{
 				CommaNL();
-				Indent();		jsonWriter.Write (GlTF_Writer.nodeNames.IndexOf(ch));
+				Indent();		jsonWriter.Write (GlTF_Writer.nodeIDs.IndexOf(ch));
 			}
 			jsonWriter.WriteLine();
 			IndentOut();
@@ -92,13 +98,16 @@ public class GlTF_Node : GlTF_Writer {
 				rotation.Write();
 			}
 		}
-		jsonWriter.Write("\n");
 
 		if (skinIndex > -1)
 		{
 			CommaNL();
 			Indent(); jsonWriter.Write("\"skin\": " + skinIndex + "\n");
-		}
+        }
+        else
+        {
+            jsonWriter.Write("\n");
+        }
 
 		IndentOut();
 		Indent();		jsonWriter.Write ("}");
