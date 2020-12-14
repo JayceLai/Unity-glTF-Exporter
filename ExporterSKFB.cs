@@ -11,12 +11,12 @@ using UnityEditor.SceneManagement;
 
 public class ExporterSKFB : EditorWindow {
 
-	[MenuItem("Gltf/export")]
+	[MenuItem("GlTF/export")]
 	static void Init()
 	{
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX // edit: added Platform Dependent Compilation - win or osx standalone
 		ExporterSKFB window = (ExporterSKFB)EditorWindow.GetWindow(typeof(ExporterSKFB));
-		window.titleContent.text = "Gltf";
+		window.titleContent.text = "GlTF";
 		window.Show();
 #else // and error dialog if not standalone
 		EditorUtility.DisplayDialog("Error", "Your build target must be set to standalone", "Okay");
